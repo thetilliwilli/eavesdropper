@@ -14,7 +14,7 @@ class WebServer
         this._SetInnerState(config);
 
         this.server = null;
-        this.fsProxy = new FSProxy();
+        this.fsProxy = null;
 
         this._DefaultMiddleware = this._DefaultMiddleware.bind(this);
     }
@@ -23,6 +23,7 @@ class WebServer
         this._SetInnerState(config);
         this._ValidateInnerState();
 
+        this.fsProxy = new FSProxy(this.config);
         this.server = http.createServer(this._DefaultMiddleware);
         this.server.listen(this.config.port, ()=>{console.log(`Server listen on ${this.config.port} port`)});
     }
@@ -57,6 +58,7 @@ class WebServer
                 return response.end(`Нет такой команды: ${request.url.slice(1)}`);
         }
     }
+
 }
 
 module.exports = WebServer;

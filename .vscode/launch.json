@@ -11,7 +11,8 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}\\index.js",
             "env": {
-                "webRoot": "/htdocs/RepoGitTest"
+                "webRoot": "/htdocs/RepoGitTest",
+                "observablePath": "/xampp/htdocs/Izida/CmsApi/Static/Repo"
             }
         }
     ]
