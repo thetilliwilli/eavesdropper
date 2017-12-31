@@ -17,20 +17,24 @@ class GitProxy extends Base
 
     Initialize(){
         let self = this;
-        const CheckGitInstallationResolver = function(RESOLVE, REJECT){
-            cp.exec(`git --version`, error => error?REJECT(error):RESOLVE());
-        };
-        const CheckGitDirPathResolver = function(RESOLVE, REJECT){
-            fs.exists(self.config.gitDirPath, exists => exists?RESOLVE():REJECT(`gitDirPath не существует`));
-        };
-        const InitGitRepoResolver = function(RESOLVE, REJECT){
-            cp.exec(`git init --separate-git-dir ${self.config.gitDirPath} ${self.config.workTreePath}`, error => error?REJECT(error):RESOLVE());
-        };
-
-        return Promise.resolve()
-            .then(() => new Promise(CheckGitInstallationResolver))
-            .then(() => new Promise(CheckGitDirPathResolver))
-            .then(() => new Promise(InitGitRepoResolver));
+        return super.Initialize()
+            .then(() => {
+                const CheckGitInstallationResolver = function(RESOLVE, REJECT){
+                    cp.exec(`git --version`, error => error?REJECT(error):RESOLVE());
+                };
+                const CheckGitDirPathResolver = function(RESOLVE, REJECT){
+                    fs.exists(self.config.gitDirPath, exists => exists?RESOLVE():REJECT(`gitDirPath не существует`));
+                };
+                const InitGitRepoResolver = function(RESOLVE, REJECT){
+                    cp.exec(`git init --separate-git-dir ${self.config.gitDirPath} ${self.config.workTreePath}`, error => error?REJECT(error):RESOLVE());
+                };
+        
+                return Promise.resolve()
+                    .then(() => new Promise(CheckGitInstallationResolver))
+                    .then(() => new Promise(CheckGitDirPathResolver))
+                    .then(() => new Promise(InitGitRepoResolver));
+            })
+            .then(() => self);
     }
 
     HasChanges(){

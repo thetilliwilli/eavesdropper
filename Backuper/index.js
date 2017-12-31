@@ -23,22 +23,24 @@ class Backuper extends Base
 
     Initialize(){
         let self = this;
-
-        const CheckObservablePathResolver = function(RESOLVE, REJECT){
-            fs.exists(self.config.observablePath, exists => exists?RESOLVE():REJECT("observablePath не существует"));
-        };
-        const CheckGitRepoPathResolver = function(RESOLVE, REJECT){
-            fs.exists(self.config.gitRepoPath, exists => exists?RESOLVE():REJECT("gitRepoPath не существует"));
-        };
-        const CheckBundlePathResolver = function(RESOLVE, REJECT){
-            fs.exists(self.config.gitRepoPath, exists => exists?RESOLVE():REJECT("bundlePath не существует"));
-        };
-
-        return Promise.resolve()
-            .then(() => this.gitProxy.Initialize())
-            .then(() => new Promise(CheckObservablePathResolver))
-            .then(() => new Promise(CheckGitRepoPathResolver))
-            .then(() => new Promise(CheckBundlePathResolver))
+        return super.Initialize()
+            .then(() => {
+                const CheckObservablePathResolver = function(RESOLVE, REJECT){
+                    fs.exists(self.config.observablePath, exists => exists?RESOLVE():REJECT("observablePath не существует"));
+                };
+                const CheckGitRepoPathResolver = function(RESOLVE, REJECT){
+                    fs.exists(self.config.gitRepoPath, exists => exists?RESOLVE():REJECT("gitRepoPath не существует"));
+                };
+                const CheckBundlePathResolver = function(RESOLVE, REJECT){
+                    fs.exists(self.config.gitRepoPath, exists => exists?RESOLVE():REJECT("bundlePath не существует"));
+                };
+        
+                return Promise.resolve()
+                    .then(() => self.gitProxy.Initialize())
+                    .then(() => new Promise(CheckObservablePathResolver))
+                    .then(() => new Promise(CheckGitRepoPathResolver))
+                    .then(() => new Promise(CheckBundlePathResolver));
+            })
             .then(() => self);
     }
 

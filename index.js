@@ -8,9 +8,14 @@ const Backuper = require("./Backuper/index.js");
 const webConfig = Object.assign({}, config.webServer, config.fsProxy);
 const backupConfig = Object.assign({}, config.fsProxy, config.backuper);
 
+const webServer = new WebServer(webConfig);
+const backuper = new Backuper(backupConfig);
+
 Promise.resolve()
-    .then(() => new Backuper(backupConfig).Initialize()).then(backuper => backuper.StartServer())
-    .then(() => new WebServer().Initialize(webConfig).StartServer())
+    .then(() => webServer.Initialize())
+    .then(() => backuper.Initialize())
+    .then(() => backuper.StartServer())
+    .then(() => webServer.StartServer())
     .then(() => {
         console.log(`Инициализация всех сервисов прошла успешно`);// do what u want here
     })

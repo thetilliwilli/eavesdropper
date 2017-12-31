@@ -6,15 +6,15 @@ module.exports = class Base
 {
     constructor(config){
         this._ValidateCoreConfig(config);
-        this._SetInnerState(config);
+        this.Setup(config);
     }
 
-    Initialize(config){
-        this._SetInnerState(config);
+    Initialize(){
         this._ValidateInnerState();
+        return Promise.resolve(this);
     }
 
-    _SetInnerState(config){
+    Setup(config){
         this.config = Object.assign({}, util.DeepCopy(config || {}));
     }
 

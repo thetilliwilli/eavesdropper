@@ -13,7 +13,7 @@ class WebServer extends Base
     constructor(config){
         super(config);
 
-        this.server = null;
+        this.server = http.createServer(this._DefaultMiddleware);
         this.fsProxy = null;
 
         this._DefaultMiddleware = this._DefaultMiddleware.bind(this);
@@ -21,12 +21,11 @@ class WebServer extends Base
         this.StartServer = this.StartServer.bind(this);
     }
 
-    Initialize(config){
-        super.Initialize(config);
-
-        this.fsProxy = new FSProxy(this.config);
-        this.server = http.createServer(this._DefaultMiddleware);
-        return this;
+    Initialize(){
+        let self = this;
+        return super.Initialize()
+            .then(() => self.fsProxy = new FSProxy(self.config))
+            .then(() => self);
     }
 
     StartServer(callback){
