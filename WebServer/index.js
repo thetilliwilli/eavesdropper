@@ -30,8 +30,12 @@ class WebServer extends Base
     }
 
     StartServer(callback){
+        let self = this;
         const cb = callback || this._DefaultListenCallback;
-        this.server.listen(this.config.port, cb);
+        return new Promise((RESOLVE, REJECT)=>{
+            self.server.listen(this.config.port, error => error?REJECT(error):RESOLVE(cb()));
+        });
+        
     }
 
 

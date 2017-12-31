@@ -16,7 +16,7 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}\\index.js",
             "env": {
-                "webRoot": "/htdocs/RepoGitTest",
+                "webRoot": "/xampp/htdocs/Izida/eavesdropper/Storage/Bundle",
                 "observablePath": "/xampp/htdocs/Izida/CmsApi/Static/Repo"
             }
         }

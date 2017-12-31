@@ -9,9 +9,9 @@ const webConfig = Object.assign({}, config.webServer, config.fsProxy);
 const backupConfig = Object.assign({}, config.fsProxy, config.backuper);
 
 Promise.resolve()
-    .then(() => new Backuper(backupConfig).StartServer())
+    .then(() => new Backuper(backupConfig).Initialize()).then(backuper => backuper.StartServer())
     .then(() => new WebServer().Initialize(webConfig).StartServer())
     .then(() => {
-        ;// do what u want here
+        console.log(`Инициализация всех сервисов прошла успешно`);// do what u want here
     })
     .catch(error => console.error(error));
