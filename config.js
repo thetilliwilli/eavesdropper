@@ -9,11 +9,12 @@ module.exports = {
     },
     fsProxy:{
         observablePath: process.env["observablePath"],
+        storagePath: path.join(__dirname, "Storage"),
         gitRepoPath: process.env["gitRepoPath"] || path.join(__dirname, "Storage", "Git"),
         bundlePath: process.env["bundlePath"] || path.join(__dirname, "Storage", "Bundle"),
         bentoPath: process.env["bentoPath"] || path.join(__dirname, "Storage", "Bento"),
     },
     backuper:{
-        schedule: "* * * * *",
+        schedule: "*/5 * * * * *",
     }
 };

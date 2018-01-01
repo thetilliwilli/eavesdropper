@@ -14,7 +14,11 @@ class Backuper extends Base
         super(config);
 
         this.inProgress = false;
-        this.gitProxy = new GitProxy({workTreePath: config.observablePath, gitDirPath: `${config.gitRepoPath}`});
+        this.gitProxy = new GitProxy({
+            workTreePath: config.observablePath,
+            gitDirPath: config.gitRepoPath,
+            bundlePath: config.bundlePath,
+        });
 
         this._BackupJob = this._BackupJob.bind(this);
         this._ActionBackup = this._ActionBackup.bind(this);
@@ -34,7 +38,7 @@ class Backuper extends Base
                 const CheckBundlePathResolver = function(RESOLVE, REJECT){
                     fs.exists(self.config.gitRepoPath, exists => exists?RESOLVE():REJECT("bundlePath не существует"));
                 };
-        
+
                 return Promise.resolve()
                     .then(() => self.gitProxy.Initialize())
                     .then(() => new Promise(CheckObservablePathResolver))
@@ -57,21 +61,22 @@ class Backuper extends Base
     }
 
     _BackupJob(){
+        let self = this;
         if(this.inProgress)
             return Promise.resolve();
         return Promise.resolve()
-            .then(() => this.inProgress = true)
-            .then(() => this._ActionWorkTreeHasAnyChanges())
+            .then(() => self.inProgress = true)
+            .then(() => self._ActionWorkTreeHasAnyChanges())
             .then(hasChanges => {
                 if(!hasChanges)
                     return Promise.resolve("Изменений в work tree нету");
                 return Promise.resolve()
-                    .then(() => this._ActionBackup())
-                    .then(() => this._ActionBundle())
+                    .then(() => self._ActionBackup())
+                    .then(() => self._ActionBundle())
                     .then(() => "Произведен бекап и обновлен bundle");
             })
             .then(msg => console.log(`Job done successfully at ${new Date().toISOString()} with message: ${msg}`))
-            .then(() => this.inProgress = false)
+            .then(() => self.inProgress = false)
             .catch(util.LogAndRethrow);
     }
 
@@ -80,13 +85,19 @@ class Backuper extends Base
     }
 
     _ActionBackup(){
-        const CommitAllJob = this.gitProxy.CommitAll();
-        const CommitLinkingCommit = this.gitProxy.Commit(`LinkCommit:${new Date().toISOString()}`);
-
-        return Promise.resolve();
+        let self = this;
+        const now = util.Now();
+        return Promise.resolve()
+            .then(() => self.gitProxy.LinkCommit(`PreLink ${now}`))
+            .then(() => self.gitProxy.ContentCommit(`Content ${now}`))
+            .then(() => self.gitProxy.LinkCommit(`PostLink ${now}`));
     }
-
-    _ActionBundle(){}
+    
+    _ActionBundle(){
+        let self = this;
+        return Promise.resolve()
+            .then(() => self.gitProxy.CreateBundle());
+    }
 
 }
 
