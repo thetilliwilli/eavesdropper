@@ -1,6 +1,8 @@
 "use strict";
 
 const fs = require("fs");
+const cp = require("child_process");
+const path = require("path");
 
 const cron = require("node-cron");
 
@@ -76,7 +78,9 @@ class Backuper extends Base
                     .then(() => self._ActionBundle())
                     .then(() => "Произведен бекап и обновлен bundle");
             })
-            .then(msg => console.log(`Job done successfully at ${new Date().toISOString()} with message: ${msg}`))
+            .then(msg => console.log(`FS backup is done at ${util.Now()} with message: ${msg}`))
+            .then(() => self._ActionMongoBackup())
+            .then(msg => console.log(`Mongo dump is done at ${util.Now()}`))
             .then(() => self.inProgress = false)
             .catch(error => {
                 self.inProgress = false;
@@ -101,6 +105,14 @@ class Backuper extends Base
         let self = this;
         return Promise.resolve()
             .then(() => self.gitProxy.CreateBundle());
+    }
+
+    _ActionMongoBackup(){
+        let self = this;
+        return new Promise((RESOLVE, REJECT) => {
+            const absFilePath = path.join(self.config.bundlePath, "mongodump.archive");
+            cp.exec(`mongodump --db TAG --archive="${absFilePath}"`, error => error ? REJECT(error) : RESOLVE());
+        });
     }
 
 }
