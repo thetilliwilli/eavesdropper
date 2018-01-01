@@ -33,6 +33,12 @@ class WebServer extends Base
         let self = this;
         const cb = callback || this._DefaultListenCallback;
         return new Promise((RESOLVE, REJECT)=>{
+            //Эта ошибка может валиться например при malformed http request
+            self.server.on("clientError", (error, socket)=>{
+                console.error(error);
+                socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+            });
+
             self.server.listen(this.config.port, error => error?REJECT(error):RESOLVE(cb()));
         });
         
@@ -56,11 +62,11 @@ class WebServer extends Base
             case "":
                 return this.fsProxy.GetFileList()
                     .then(list=>response.end(JSON.stringify(list)))
-                    .catch(error => response.error(error));
+                    .catch(error => response.end(JSON.stringify(error.message)));
             case "download":
-                return response.end("download");
+                return response.end(JSON.stringify("download"));
             case "time":
-                return response.end(util.Now());
+                return response.end(JSON.stringify(util.Now()));
             case "setLastCommit":
                 if(request.method === "POST")
                     return this._BodyParse(request)
@@ -70,7 +76,7 @@ class WebServer extends Base
                 else
                     return response.end(JSON.stringify("setLastCommit"));
             default:
-                return response.end(`Нет такой команды: ${request.url.slice(1)}`);
+                return response.end(JSON.stringify(`Нет такой команды: ${request.url.slice(1)}`));
         }
     }
 
