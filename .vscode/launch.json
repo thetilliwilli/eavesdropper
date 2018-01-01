@@ -17,7 +17,7 @@
             "program": "${workspaceFolder}\\index.js",
             "env": {
                 "webRoot": "/xampp/htdocs/Izida/eavesdropper/Storage/Bundle",
-                "observablePath": "/xampp/htdocs/Izida/CmsApi/Static/Repo"
+                "observablePath": "/Users/Tilli/Desktop/Repo/REPO/Repo"
             }
         }
     ]

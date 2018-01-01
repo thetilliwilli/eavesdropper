@@ -18,6 +18,7 @@ class Backuper extends Base
             workTreePath: config.observablePath,
             gitDirPath: config.gitRepoPath,
             bundlePath: config.bundlePath,
+            storagePath: config.storagePath,
         });
 
         this._BackupJob = this._BackupJob.bind(this);
@@ -77,7 +78,10 @@ class Backuper extends Base
             })
             .then(msg => console.log(`Job done successfully at ${new Date().toISOString()} with message: ${msg}`))
             .then(() => self.inProgress = false)
-            .catch(util.LogAndRethrow);
+            .catch(error => {
+                self.inProgress = false;
+                util.LogAndRethrow(error);
+            });
     }
 
     _ActionWorkTreeHasAnyChanges(){
@@ -88,9 +92,9 @@ class Backuper extends Base
         let self = this;
         const now = util.Now();
         return Promise.resolve()
-            .then(() => self.gitProxy.LinkCommit(`PreLink ${now}`))
-            .then(() => self.gitProxy.ContentCommit(`Content ${now}`))
-            .then(() => self.gitProxy.LinkCommit(`PostLink ${now}`));
+            .then(() => self.gitProxy.LinkCommit(`- ${now}`))
+            .then(() => self.gitProxy.ContentCommit(`C ${now}`))
+            .then(() => self.gitProxy.LinkCommit(`+ ${now}`));
     }
     
     _ActionBundle(){

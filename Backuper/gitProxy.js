@@ -85,51 +85,72 @@ class GitProxy extends Base
         let self = this;
         let ctx = {};
 
-        const CommitsCountResolver = function(RESOLVE, REJECT){
-            cp.exec(`git ${self.gitAppend} rev-list --count ${branch}`, (error, stdout)=>{
+        const HasAnyCommitResolver = function(RESOLVE, REJECT){
+            cp.exec(`git ${self.gitAppend} branch`, (error, stdout)=>{
                 if(error)
                     return REJECT(error);
-                const commitCount = parseInt(stdout.trim());
-                if(isNaN(commitCount))
-                    REJECT(new Error(`rev-list --count вернула: ${stdout.trim()}`));
-                ctx.commitCount = commitCount;
-                RESOLVE(commitCount);
+                if(stdout.trim() === "")
+                    return REJECT("Нету ниодного коммита");
+                return RESOLVE(true);
+            });
+        };
+
+        const FirstCommitResolver = function(RESOLVE, REJECT){
+            cp.exec(`git ${self.gitAppend} log --reverse --pretty=format:%H`, (error, stdout)=>{
+                if(error)
+                    return REJECT(error);
+                ctx.firstCommitInHistory = stdout.split("\n")[0].trim();
+                return RESOLVE(ctx.firstCommitInHistory);
             });
         };
 
         const LastSyncCommitResolver = function(RESOLVE, REJECT){
-            fs.readFile(self.config.storagePath, (error, data) => {
-                if(error)
+            const filePath = path.join(self.config.storagePath, "lastSyncCommit.txt");
+            fs.readFile(filePath, (error, data) => {
+                if(error && error.code !== "ENOENT")
                     return REJECT(error);
-                ctx.lastCommit = data;
-                RESOLVE(data);
+                if(error && error.code === "ENOENT")//Если нету файла lastSyncCommit.txt то в качестве коммита берем самый новый и репозитория
+                    ctx.lastSyncCommit = ctx.firstCommitInHistory;
+                else
+                    ctx.lastSyncCommit = data.toString();
+                return RESOLVE(ctx.lastSyncCommit);
             });
         };
 
         const GetCommitRange = function(RESOLVE, REJECT){
-            cp.exec(`git ${self.gitAppend}  ${branch}`, (error, stdout)=>{
-
+            cp.exec(`git ${self.gitAppend} log --pretty=format:%H`, (error, stdout)=>{
+                if(error)
+                    return REJECT(error);
+                ctx.commitsList = stdout.split("\n");
+                if(ctx.commitsList[ctx.commitsList.length-1].trim()==="")
+                    ctx.commitsList.splice(-1);
+                if(ctx.commitsList.length < 2)
+                    return REJECT(`Количество коммитов не соответсвует минимально необходимому = 2.\
+                    Сейчас есть: ${ctx.commitsList.length}.\
+                    Необходимо правильно проинициализировать хранилище`);
+                var commonCommit = ctx.commitsList.find(com => com.trim() === ctx.lastSyncCommit.trim());
+                if(commonCommit === undefined)
+                    return REJECT(new Error(`Общий коммит для синхронизации не найден. Попробуйте увеличить диапазон сихронизации`));
+                ctx.commitRange = `${commonCommit}..${ctx.commitsList[0]}`;
+                return RESOLVE(ctx.commitRange);
             });
         };
 
         const CreateBundleResolver = function(RESOLVE, REJECT){
             cp.exec(
-                `git ${self.gitAppend} bundle create ${bundleAbsPath} ${branch}`,
+                `git ${self.gitAppend} bundle create ${bundleAbsPath} ${branch} ${ctx.commitRange}`,
                 error => error?REJECT(error):RESOLVE()
             );
         };
 
 
         return Promise.resolve()
-            .then(() => new Promise(CommitsCountResolver))
+            .then(() => new Promise(HasAnyCommitResolver))
+            .then(() => new Promise(FirstCommitResolver))
             .then(() => new Promise(LastSyncCommitResolver))
-            .then(commitCount => {
-                if(commitCount >= 3)
-                    return new Promise()
-                        .then(() => new Promise())
-                return true;
-            })
-            // .then(() => )
+            .then(() => new Promise(GetCommitRange))
+            .then(() => new Promise(CreateBundleResolver))
+            .catch(util.LogAndRethrow)
             ;
     }
 }
