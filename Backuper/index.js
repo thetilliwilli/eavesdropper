@@ -6,8 +6,8 @@ const path = require("path");
 
 const cron = require("node-cron");
 
-const Base = require("../Common/base.js");
-const util = require("../Common/util.js");
+const Base = require("@tilliwilli/izida-common/base.js");
+const util = require("@tilliwilli/izida-common/util.js");
 const GitProxy = require("./gitProxy.js");
 
 class Backuper extends Base
@@ -110,7 +110,7 @@ class Backuper extends Base
     _ActionMongoBackup(){
         let self = this;
         return new Promise((RESOLVE, REJECT) => {
-            const absFilePath = path.join(self.config.bundlePath, "mongodump.archive");
+            const absFilePath = path.join(self.config.bundlePath, "db.archive");
             cp.exec(`mongodump --db TAG --archive="${absFilePath}"`, error => error ? REJECT(error) : RESOLVE());
         });
     }

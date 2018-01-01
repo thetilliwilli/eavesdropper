@@ -2,10 +2,10 @@
 
 const http = require("http");
 
-const util = require("../Common/util.js");
+const util = require("@tilliwilli/izida-common/util.js");
 
 const FSProxy = require("./fsProxy.js");
-const Base = require("../Common/base.js");
+const Base = require("@tilliwilli/izida-common/base.js");
 
 
 class WebServer extends Base

@@ -4,8 +4,8 @@ const fs = require("fs");
 const cp = require("child_process");
 const path = require("path");
 
-const Base = require("../Common/base.js");
-const util = require("../Common/util.js");
+const Base = require("@tilliwilli/izida-common/base.js");
+const util = require("@tilliwilli/izida-common/util.js");
 
 class GitProxy extends Base
 {

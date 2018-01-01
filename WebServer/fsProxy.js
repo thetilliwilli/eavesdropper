@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const Base = require("../Common/base.js");
+const Base = require("@tilliwilli/izida-common/base.js");
 
 class FSProxy extends Base
 {
