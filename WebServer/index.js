@@ -60,17 +60,17 @@ class WebServer extends Base
         switch(request.url.slice(1))
         {
             case "":
-                return this.fsProxy.GetFileList()
+                return self.fsProxy.GetFileList()
                     .then(list=>response.end(JSON.stringify(list)))
                     .catch(error => response.end(JSON.stringify(error.message)));
-            case "download":
-                return response.end(JSON.stringify("download"));
+            case "downloadArchive":
+                return self.fsProxy.ArchiveFileStream().pipe(response);
             case "time":
                 return response.end(JSON.stringify(util.Now()));
             case "setLastCommit":
                 if(request.method === "POST")
-                    return this._BodyParse(request)
-                        .then(json => self.fsProxy.StoreLastSyncCommit(json.lastCommit))
+                    return self._BodyParse(request)
+                        .then(json => self.fsProxy.StoreLastSyncCommit(json))
                         .then(json => response.end(JSON.stringify("ok")))
                         .catch(error => response.end(JSON.stringify(error.message)));
                 else
@@ -93,7 +93,6 @@ class WebServer extends Base
                 .on("end", () => RESOLVE(JSON.parse(rawData)) );
         });
     }
-
 }
 
 module.exports = WebServer;

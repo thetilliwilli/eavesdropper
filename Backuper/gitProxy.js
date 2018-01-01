@@ -109,7 +109,7 @@ class GitProxy extends Base
             fs.readFile(filePath, (error, data) => {
                 if(error && error.code !== "ENOENT")
                     return REJECT(error);
-                if(error && error.code === "ENOENT")//Если нету файла lastSyncCommit.txt то в качестве коммита берем самый новый и репозитория
+                if(error && error.code === "ENOENT")//Если нету файла lastSyncCommit.txt то берем самый первый коммита из репозитория
                     ctx.lastSyncCommit = ctx.firstCommitInHistory;
                 else
                     ctx.lastSyncCommit = data.toString();

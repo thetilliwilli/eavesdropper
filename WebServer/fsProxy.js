@@ -15,8 +15,9 @@ class FSProxy extends Base
         );
     }
 
-    GetFileStreams(){
-        throw new Error("Unimplemented");
+    ArchiveFileStream(){
+        const absFilePath = path.join(this.config.bundlePath, "db.archive");
+        return fs.createReadStream(absFilePath);
     }
 
     StoreLastSyncCommit(commitHash){
