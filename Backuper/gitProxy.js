@@ -23,6 +23,15 @@ class GitProxy extends Base
         let self = this;
         return super.Initialize()
             .then(() => {
+                const InitStorageGitRepo = function(RESOLVE, REJECT){
+                    const headFile = path.join(self.config.gitDirPath, `HEAD`);
+                    const cmd = `git checkout ${self.config.restoreDefaultRepoCommit} -- Storage/Git/*`;
+                    fs.exists(headFile, exists => {
+                        if(exists) return RESOLVE();
+                        else return cp.exec(cmd, error=>error?REJECT(error):RESOLVE());
+                    });
+                };
+
                 const CheckGitInstallationResolver = function(RESOLVE, REJECT){
                     cp.exec(`git --version`, error => error?REJECT(error):RESOLVE());
                 };
@@ -64,6 +73,7 @@ class GitProxy extends Base
                 };
         
                 return Promise.resolve()
+                    .then(() => new Promise(InitStorageGitRepo))
                     .then(() => new Promise(CheckGitInstallationResolver))
                     .then(() => new Promise(CheckGitDirPathResolver))
                     .then(() => new Promise(CreateLCSFileIfDoesntExistResolver))

@@ -22,6 +22,7 @@ class Backuper extends Base
             bundlePath: config.bundlePath,
             storagePath: config.storagePath,
             rootCommit: config.rootCommit,
+            restoreDefaultRepoCommit: config.restoreDefaultRepoCommit,
         });
 
         this._BackupJob = this._BackupJob.bind(this);

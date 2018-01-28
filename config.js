@@ -16,6 +16,7 @@ module.exports = {
     },
     backuper:{
         rootCommit: "b9bba57d9c33a60bcfb3d5e8359007c1947a1600",
+        restoreDefaultRepoCommit: "9dd0e83a9a64a2e21151f017bcacc0693ffebc54",
         schedule: "59 0 * * *",//в час ночи каждый день
     }
 };
