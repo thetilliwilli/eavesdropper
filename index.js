@@ -21,7 +21,7 @@ const fsConfig = webConfig;
 
 const gitProxy = new GitProxy(gitConfig);
 const fsProxy = new FSProxy(fsConfig);
-const webServer = new WebServer(webConfig, gitProxy);
+const webServer = new WebServer(webConfig, gitProxy, fsProxy);
 const backuper = new Backuper(backupConfig, gitProxy);
 
 
