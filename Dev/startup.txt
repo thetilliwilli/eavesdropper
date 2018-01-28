@@ -1,1 +1,1 @@
-set webRoot=/_Izida/eavesdropper/Storage/Bundle&&set observablePath=/_Izida/CmsApi/Static/Repo&&set webServerPort=10003&&node index.js
+set webRoot=/_Izida/eavesdropper/Storage/Bundle&&set observablePath=/_Izida/CmsApi/Static/Repo&&set webServerPort=10003&&pm2 start index.js --name eavesdropper
