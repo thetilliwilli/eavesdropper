@@ -170,7 +170,7 @@ class GitProxy extends Base
                     Необходимо правильно проинициализировать хранилище`);
                 var commonCommit = ctx.commitsList.find(com => com.trim() === ctx.lastSyncCommit.trim());
                 if(commonCommit === undefined)
-                    return REJECT(new Error(`Общий коммит для синхронизации не найден. Попробуйте увеличить диапазон сихронизации`));
+                    return REJECT(new Error(`Общий коммит для синхронизации не найден. Попробуйте увеличить диапазон сихронизации или удалите файл lastSyncCommit.txt для полной синхронизации с нуля`));
                 ctx.commitRange = `${commonCommit}..${ctx.commitsList[0]}`;
                 return RESOLVE(ctx.commitRange);
             });
