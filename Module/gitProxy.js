@@ -176,10 +176,23 @@ class GitProxy extends Base
             });
         };
 
+        const IsIdenticalCommitRangeResolver = function(RESOLVE, REJECT){
+            const infoFile = `${self.config.bundlePath}/info.txt`;
+            fs.readFile(infoFile, (error, data) => {
+                if(error) return RESOLVE(false);//здесь в обоих случаях исп-ся RESOLVE
+                else return RESOLVE(data === ctx.commitRange);
+            });
+        };
+
         const CreateBundleResolver = function(RESOLVE, REJECT){
             const cmd = `git ${self.gitAppend} bundle create ${bundleAbsPath} ${branch} ${ctx.commitRange}`;
             console.log(`[GitCommand.CreateBundle]: ${cmd}`);
             cp.exec(cmd, error => error?REJECT(error):RESOLVE() );
+        };
+
+        const CreateBundleInfoFileResolver = function(RESOLVE, REJECT){
+            const infoFile = `${self.config.bundlePath}/info.txt`;
+            fs.writeFile(infoFile, ctx.commitRange, error=>error?REJECT(error):RESOLVE());
         };
 
 
@@ -188,7 +201,16 @@ class GitProxy extends Base
             .then(() => new Promise(FirstCommitResolver))
             .then(() => new Promise(LastSyncCommitResolver))
             .then(() => new Promise(GetCommitRange))
-            .then(() => new Promise(CreateBundleResolver))
+            .then(() => new Promise(IsIdenticalCommitRangeResolver))
+            .then(isIdentical => {
+                if(isIdentical) return Promise.resolve(`Новый бандл не создавался, так как, диапазон в файле info.txt соответсвует текущему`);
+                else return Promise.resolve()
+                    .then(() => new Promise(CreateBundleResolver))
+                    .then(() => new Promise(CreateBundleInfoFileResolver))
+                    .then(() => `Создан новый bundle c диапазоном ${ctx.commitRange}`)
+                    ;
+            })
+            .then(msg => console.log(`[CreateBundle.Done]: at ${util.Now()} with message: ${msg}`))
             .catch(util.LogAndRethrow)
             ;
     }
