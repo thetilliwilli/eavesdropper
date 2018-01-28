@@ -51,15 +51,12 @@ class WebServer extends Base
         
     }
 
-
     _ValidateInnerState(){
         super._ValidateInnerState();
         if(!this.config) throw new Error("coreConfig не задан");
         if(!this.config.port) throw new Error(`Не задан порт`);
         if(!this.config.webRoot) throw new Error("Отсутсвует необходимый параметр: coreConfig.webRoot");
     }
-
-    
 
     _DefaultMiddleware(request, response){
         let self = this;

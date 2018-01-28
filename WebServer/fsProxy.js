@@ -22,7 +22,7 @@ class FSProxy extends Base
 
     StoreLastSyncCommit(commitHash){
         let self = this;
-        const absFilePath = path.join(self.config.workTreePath, "lastSyncCommit.txt");
+        const absFilePath = path.join(self.config.observablePath, "lastSyncCommit.txt");
         return new Promise((RESOLVE, REJECT)=>{
             fs.writeFile(absFilePath, commitHash, "utf8", error => error ? REJECT(error) : RESOLVE(0));
         });
