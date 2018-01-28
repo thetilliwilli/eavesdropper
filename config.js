@@ -15,6 +15,7 @@ module.exports = {
         bentoPath: process.env["bentoPath"] || path.join(__dirname, "Storage", "Bento"),
     },
     backuper:{
-        schedule: "*/5 * * * * *",
+        rootCommit: "b9bba57d9c33a60bcfb3d5e8359007c1947a1600",
+        schedule: "59 0 * * *",//в час ночи каждый день
     }
 };
