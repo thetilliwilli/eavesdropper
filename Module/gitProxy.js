@@ -38,7 +38,7 @@ class GitProxy extends Base
                 const CheckGitDirPathResolver = function(RESOLVE, REJECT){
                     fs.exists(self.config.gitDirPath, exists => {
                         if(exists) return RESOLVE();
-                        else return fs.mkdir(self.config.gitDirPath, error => error?REJECT("gitDirPath не существует"):RESOLVE());
+                        else return fs.mkdir(self.config.gitDirPath, error => error?REJECT(error):RESOLVE());
                     });
                 };
                 const CreateLCSFileIfDoesntExistResolver = function(RESOLVE, REJECT){
@@ -68,7 +68,7 @@ class GitProxy extends Base
                 const CheckBundlePathResolver = function(RESOLVE, REJECT){
                     fs.exists(self.config.bundlePath, exists => {
                         if(exists) return RESOLVE();
-                        else return fs.mkdir(self.config.bundlePath, error => error?REJECT("bundlePath не существует"):RESOLVE());
+                        else return fs.mkdir(self.config.bundlePath, error => error?REJECT(error):RESOLVE());
                     });
                 };
         
