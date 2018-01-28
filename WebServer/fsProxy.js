@@ -15,8 +15,8 @@ class FSProxy extends Base
         );
     }
 
-    ArchiveFileStream(){
-        const absFilePath = path.join(this.config.bundlePath, "db.archive");
+    GetBundleStream(){
+        const absFilePath = path.join(this.config.bundlePath, "repo.bundle");
         return fs.createReadStream(absFilePath);
     }
 
@@ -42,6 +42,23 @@ class FSProxy extends Base
             ._ValidateStringArg(config.gitRepoPath)
             ._ValidateStringArg(config.bundlePath)
             ._ValidateStringArg(config.bentoPath);
+    }
+
+    RepoBundleStats(){
+        let self = this;
+
+        function PropMapper(obj){
+            let {size, atime, mtime, ctime, birthtime} = obj;
+            return {size, atime, mtime, ctime, birthtime};
+        };
+
+        return new Promise((RESOLVE, REJECT) => {
+            const bundleFile = `${self.config.bundlePath}/repo.bundle`;
+            fs.stat(bundleFile, (error, stats)=>{
+                if(error) return REJECT(error);
+                else return RESOLVE(PropMapper(stats));
+            });
+        });
     }
 }
 

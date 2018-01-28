@@ -167,10 +167,9 @@ class GitProxy extends Base
         };
 
         const CreateBundleResolver = function(RESOLVE, REJECT){
-            cp.exec(
-                `git ${self.gitAppend} bundle create ${bundleAbsPath} ${branch} ${ctx.commitRange}`,
-                error => error?REJECT(error):RESOLVE()
-            );
+            const cmd = `git ${self.gitAppend} bundle create ${bundleAbsPath} ${branch} ${ctx.commitRange}`;
+            console.log(`[GitCommand.CreateBundle]: ${cmd}`);
+            cp.exec(cmd, error => error?REJECT(error):RESOLVE() );
         };
 
 
@@ -195,6 +194,17 @@ class GitProxy extends Base
                     return {hash, msg, time};
                 });
                 return RESOLVE(result);
+            });
+        });
+    }
+
+    GetLastestCommitHash(){
+        let self = this;
+        return new Promise((RESOLVE, REJECT) => {
+            const cmd = `git ${self.gitAppend} log --pretty=format:%H`;
+            cp.exec(cmd, (error, stdout)=>{
+                if(error) return REJECT(error);
+                else return RESOLVE(stdout.slice(0, stdout.indexOf("\n")).trim());
             });
         });
     }

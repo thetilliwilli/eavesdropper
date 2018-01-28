@@ -67,7 +67,11 @@ class WebServer extends Base
                 let ctx = {};
                 return Promise.resolve()
                     .then(() => self.fsProxy.GetLastSyncCommit())
-                    .then(lsc => ctx.lastSyncCommit = lsc)
+                        .then(lsc => ctx.lastSyncCommit = lsc)
+                    .then(() => self.gitProxy.GetLastestCommitHash())
+                        .then(lastest => ctx.lastestCommit = lastest)
+                    .then(() => self.fsProxy.RepoBundleStats())
+                        .then(stats => ctx.bundle = stats)
                     .then(() => ctx.time = util.Now())
                     .then(() => ctx.status = "ok")
                     .then(() => response.end(JSON.stringify(ctx)))
@@ -79,8 +83,8 @@ class WebServer extends Base
                     .then(() => self.gitProxy.GetGitHistory())
                     .then(history => response.end(JSON.stringify(history)))
                     .catch(error => response.end(JSON.stringify(error)))
-            case "downloadArchive":
-                return self.fsProxy.ArchiveFileStream().pipe(response);
+            case "downloadBundle":
+                return self.fsProxy.GetBundleStream().pipe(response);
             case "setLastCommit":
                 if(request.method === "POST")
                     return self._BodyParse(request)
