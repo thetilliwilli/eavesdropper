@@ -27,18 +27,48 @@ class GitProxy extends Base
                     cp.exec(`git --version`, error => error?REJECT(error):RESOLVE());
                 };
                 const CheckGitDirPathResolver = function(RESOLVE, REJECT){
-                    fs.exists(self.config.gitDirPath, exists => exists?RESOLVE():REJECT(`gitDirPath не существует`));
+                    fs.exists(self.config.gitDirPath, exists => {
+                        if(exists) return RESOLVE();
+                        else return fs.mkdir(self.config.gitDirPath, error => error?REJECT("gitDirPath не существует"):RESOLVE());
+                    });
+                };
+                const CreateLCSFileIfDoesntExistResolver = function(RESOLVE, REJECT){
+                    const lscFile = `${self.config.workTreePath}/lastSyncCommit.txt`;
+                    fs.exists(lscFile, exists => {
+                        if(exists) return RESOLVE();
+                        else return fs.writeFile(lscFile, self.config.rootCommit, error=>error?REJECT(error):RESOLVE());
+                    });
+                };
+                const DeleteGitLinkFileResolver = function(RESOLVE, REJECT){
+                    const gitLinkFile = `${self.config.workTreePath}/.git`;
+                    fs.exists(gitLinkFile, exists => {
+                        if(exists) return fs.unlink(gitLinkFile, error => error?REJECT(error):RESOLVE());
+                        else return RESOLVE();
+                    });
+                };
+                const DeleteRepoBundleLockResolver = function(RESOLVE, REJECT){
+                    const lockFile = `${self.config.bundlePath}/repo.bundle.lock`;
+                    fs.exists(lockFile, exists => {
+                        if(exists) return fs.unlink(lockFile, error => error?REJECT(error):RESOLVE());
+                        else return RESOLVE();
+                    });
                 };
                 const InitGitRepoResolver = function(RESOLVE, REJECT){
                     cp.exec(`git init --separate-git-dir ${self.config.gitDirPath} ${self.config.workTreePath}`, error => error?REJECT(error):RESOLVE());
                 };
                 const CheckBundlePathResolver = function(RESOLVE, REJECT){
-                    fs.exists(self.config.bundlePath, exists => exists?RESOLVE():REJECT(`bundlePath не существует`));
+                    fs.exists(self.config.bundlePath, exists => {
+                        if(exists) return RESOLVE();
+                        else return fs.mkdir(self.config.bundlePath, error => error?REJECT("bundlePath не существует"):RESOLVE());
+                    });
                 };
         
                 return Promise.resolve()
                     .then(() => new Promise(CheckGitInstallationResolver))
                     .then(() => new Promise(CheckGitDirPathResolver))
+                    .then(() => new Promise(CreateLCSFileIfDoesntExistResolver))
+                    .then(() => new Promise(DeleteGitLinkFileResolver))
+                    .then(() => new Promise(DeleteRepoBundleLockResolver))
                     .then(() => new Promise(InitGitRepoResolver))
                     .then(() => new Promise(CheckBundlePathResolver));
             })
@@ -105,7 +135,7 @@ class GitProxy extends Base
         };
 
         const LastSyncCommitResolver = function(RESOLVE, REJECT){
-            const filePath = path.join(self.config.storagePath, "lastSyncCommit.txt");
+            const filePath = path.join(self.config.workTreePath, "lastSyncCommit.txt");
             fs.readFile(filePath, (error, data) => {
                 if(error && error.code !== "ENOENT")
                     return REJECT(error);
@@ -152,6 +182,21 @@ class GitProxy extends Base
             .then(() => new Promise(CreateBundleResolver))
             .catch(util.LogAndRethrow)
             ;
+    }
+
+    GetGitHistory(){
+        let self = this;
+        return new Promise((RESOLVE, REJECT)=>{
+            cp.exec(`git ${self.gitAppend} log --reverse --pretty=format:"%H %s %cI"`, (error, stdout)=>{
+                if(error)
+                    return REJECT(error);
+                const result  = stdout.split("\n").map(c => {
+                    let [hash, msg, time] = c.split(" ");
+                    return {hash, msg, time};
+                });
+                return RESOLVE(result);
+            });
+        });
     }
 }
 
