@@ -21,6 +21,7 @@ class Backuper extends Base
             gitDirPath: config.gitRepoPath,
             bundlePath: config.bundlePath,
             storagePath: config.storagePath,
+            rootCommit: config.rootCommit,
         });
 
         this._BackupJob = this._BackupJob.bind(this);
@@ -60,7 +61,8 @@ class Backuper extends Base
     }
 
     StartServer(){
-        cron.schedule(this.config.schedule, this._BackupJob);
+        cron.schedule(this.config.schedule, this._BackupJob);//запуск по расписанию
+        this._BackupJob();//запуск сразу
     }
 
     _BackupJob(){
@@ -69,6 +71,8 @@ class Backuper extends Base
             return Promise.resolve();
         return Promise.resolve()
             .then(() => self.inProgress = true)
+            .then(() => self._ActionMongoBackup())
+            .then(msg => console.log(`Mongo dump is done at ${util.Now()}`))
             .then(() => self._ActionWorkTreeHasAnyChanges())
             .then(hasChanges => {
                 if(!hasChanges)
@@ -79,8 +83,6 @@ class Backuper extends Base
                     .then(() => "Произведен бекап и обновлен bundle");
             })
             .then(msg => console.log(`FS backup is done at ${util.Now()} with message: ${msg}`))
-            .then(() => self._ActionMongoBackup())
-            .then(msg => console.log(`Mongo dump is done at ${util.Now()}`))
             .then(() => self.inProgress = false)
             .catch(error => {
                 self.inProgress = false;
@@ -96,9 +98,9 @@ class Backuper extends Base
         let self = this;
         const now = util.Now();
         return Promise.resolve()
-            .then(() => self.gitProxy.LinkCommit(`- ${now}`))
-            .then(() => self.gitProxy.ContentCommit(`C ${now}`))
-            .then(() => self.gitProxy.LinkCommit(`+ ${now}`));
+            .then(() => self.gitProxy.LinkCommit(`-`))
+            .then(() => self.gitProxy.ContentCommit(`C`))
+            .then(() => self.gitProxy.LinkCommit(`+`));
     }
     
     _ActionBundle(){
@@ -110,7 +112,7 @@ class Backuper extends Base
     _ActionMongoBackup(){
         let self = this;
         return new Promise((RESOLVE, REJECT) => {
-            const absFilePath = path.join(self.config.bundlePath, "db.archive");
+            const absFilePath = path.join(self.config.observablePath, "db.archive");
             cp.exec(`mongodump --db TAG --archive="${absFilePath}"`, error => error ? REJECT(error) : RESOLVE());
         });
     }

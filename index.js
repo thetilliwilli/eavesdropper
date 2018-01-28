@@ -5,7 +5,7 @@ const config = require("./config.js");
 const WebServer = require("./WebServer/index.js");
 const Backuper = require("./Backuper/index.js");
 
-const webConfig = Object.assign({}, config.webServer, config.fsProxy);
+const webConfig = Object.assign({}, config.webServer, config.fsProxy, config.backuper);
 const backupConfig = Object.assign({}, config.fsProxy, config.backuper);
 
 const webServer = new WebServer(webConfig);

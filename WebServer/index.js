@@ -4,16 +4,23 @@ const http = require("http");
 
 const util = require("@tilliwilli/izida-common/util.js");
 
-const FSProxy = require("./fsProxy.js");
 const Base = require("@tilliwilli/izida-common/base.js");
-
+const FSProxy = require("./fsProxy.js");
+const GitProxy = require("../Backuper/gitProxy.js");
 
 class WebServer extends Base
 {
     constructor(config){
         super(config);
 
-        this.fsProxy = null;
+        this.fsProxy = new FSProxy(this.config);
+        this.gitProxy = new GitProxy({
+            workTreePath: config.observablePath,
+            gitDirPath: config.gitRepoPath,
+            bundlePath: config.bundlePath,
+            storagePath: config.storagePath,
+            rootCommit: config.rootCommit,
+        });
         
         this._DefaultMiddleware = this._DefaultMiddleware.bind(this);
         this._DefaultListenCallback = this._DefaultListenCallback.bind(this);
@@ -25,7 +32,7 @@ class WebServer extends Base
     Initialize(){
         let self = this;
         return super.Initialize()
-            .then(() => self.fsProxy = new FSProxy(self.config))
+            .then(() => self.gitProxy.Initialize())
             .then(() => self);
     }
 
@@ -60,13 +67,23 @@ class WebServer extends Base
         switch(request.url.slice(1))
         {
             case "":
-                return self.fsProxy.GetFileList()
-                    .then(list=>response.end(JSON.stringify(list)))
-                    .catch(error => response.end(JSON.stringify(error.message)));
-            case "downloadArchive":
-                return self.fsProxy.ArchiveFileStream().pipe(response);
+                let ctx = {};
+                return Promise.resolve()
+                    .then(() => self.fsProxy.GetLastSyncCommit())
+                    .then(lsc => ctx.lastSyncCommit = lsc)
+                    .then(() => ctx.time = util.Now())
+                    .then(() => ctx.status = "ok")
+                    .then(() => response.end(JSON.stringify(ctx)))
+                    .catch(error => response.end(JSON.stringify(error)));
             case "time":
                 return response.end(JSON.stringify(util.Now()));
+            case "history":
+                return Promise.resolve()
+                    .then(() => self.gitProxy.GetGitHistory())
+                    .then(history => response.end(JSON.stringify(history)))
+                    .catch(error => response.end(JSON.stringify(error)))
+            case "downloadArchive":
+                return self.fsProxy.ArchiveFileStream().pipe(response);
             case "setLastCommit":
                 if(request.method === "POST")
                     return self._BodyParse(request)
