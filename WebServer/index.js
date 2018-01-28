@@ -5,35 +5,22 @@ const http = require("http");
 const util = require("@tilliwilli/izida-common/util.js");
 
 const Base = require("@tilliwilli/izida-common/base.js");
-const FSProxy = require("./fsProxy.js");
-const GitProxy = require("../Backuper/gitProxy.js");
 
 class WebServer extends Base
 {
-    constructor(config){
+    constructor(config, gitProxy, fsProxy){
+        if(!gitProxy) throw new Error("Сервису необходима зависимость: gitProxy");
+        if(!fsProxy) throw new Error("Сервису необходима зависимость: fsProxy");
         super(config);
 
-        this.fsProxy = new FSProxy(this.config);
-        this.gitProxy = new GitProxy({
-            workTreePath: config.observablePath,
-            gitDirPath: config.gitRepoPath,
-            bundlePath: config.bundlePath,
-            storagePath: config.storagePath,
-            rootCommit: config.rootCommit,
-        });
+        this.fsProxy = fsProxy;
+        this.gitProxy = gitProxy;
         
         this._DefaultMiddleware = this._DefaultMiddleware.bind(this);
         this._DefaultListenCallback = this._DefaultListenCallback.bind(this);
         this.StartServer = this.StartServer.bind(this);
 
         this.server = http.createServer(this._DefaultMiddleware);
-    }
-
-    Initialize(){
-        let self = this;
-        return super.Initialize()
-            .then(() => self.gitProxy.Initialize())
-            .then(() => self);
     }
 
     StartServer(callback){

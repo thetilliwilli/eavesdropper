@@ -8,22 +8,15 @@ const cron = require("node-cron");
 
 const Base = require("@tilliwilli/izida-common/base.js");
 const util = require("@tilliwilli/izida-common/util.js");
-const GitProxy = require("./gitProxy.js");
 
 class Backuper extends Base
 {
-    constructor(config){
+    constructor(config, gitProxy){
+        if(!gitProxy) throw new Error("Сервису необходима зависимость: gitProxy");
         super(config);
 
         this.inProgress = false;
-        this.gitProxy = new GitProxy({
-            workTreePath: config.observablePath,
-            gitDirPath: config.gitRepoPath,
-            bundlePath: config.bundlePath,
-            storagePath: config.storagePath,
-            rootCommit: config.rootCommit,
-            restoreDefaultRepoCommit: config.restoreDefaultRepoCommit,
-        });
+        this.gitProxy = gitProxy;
 
         this._BackupJob = this._BackupJob.bind(this);
         this._ActionBackup = this._ActionBackup.bind(this);
@@ -45,7 +38,6 @@ class Backuper extends Base
                 };
 
                 return Promise.resolve()
-                    .then(() => self.gitProxy.Initialize())
                     .then(() => new Promise(CheckObservablePathResolver))
                     .then(() => new Promise(CheckGitRepoPathResolver))
                     .then(() => new Promise(CheckBundlePathResolver));
